@@ -2,16 +2,14 @@
 from tkinter import *
 import random
 import helper
-from _overlapped import NULL
+import debug
 
 class Portail():
     def __init__(self, parent):
         self.parent = parent
         self.pointsDeVie = 1000
         # Retire le dernier point du sentier pour représenter la position du portail
-        position = parent.sentier.chemin.pop()
-        self.x = position[0]
-        self.y = position[1]
+        self.x, self.y = parent.sentier.chemin.pop()
     
     # Réduit les points de vie du portail s'il est endommagé
     def endommager(self, dommages):
@@ -117,8 +115,16 @@ class TowerDefense():
         self.parent = parent
         self.largeur = 30
         self.hauteur = 20
+        self.sentier = None
+        self.portail = None
+        self.partieEnCours = False
+        
+    def creerPartie(self):
         self.sentier = Sentier(self)
         self.portail = Portail(self)
+        
+        # Afficher le debug
+        debug.Debug.log(self)
 
 class Vue():
     def __init__(self, parent):
@@ -128,30 +134,66 @@ class Vue():
         self.echelleDeGrosseur = 20
         self.largeur = 800
         self.hauteur = 600
+        self.titreDuJeu = "Tower Defense"
+    
+    def afficheMenuInit(self):
+        # Titre de la fenêtre
+        self.root.title(self.titreDuJeu)
         
-    # ===[Debugging]=====================================================
+        # Détermine la résolution de la fenêtre
+        geometry = "%dx%d" % (self.largeur, self.hauteur)
+        self.root.geometry(geometry)
+        
+        # Création du frame qui va contenir le menu
+        self.frameMenu = Frame(self.root)
+        self.frameMenu.pack(side = TOP, expand = True, fill = X, padx = 275)
+        
+        # Création du titre
+        self.labTitre = Label(self.frameMenu, text = self.titreDuJeu)
+        self.labTitre.pack(fill = X, pady = 15)
+        
+        # Création des boutons
+        btnPaddingY = 5
+        
+        # Si la partie est en cours, afficher l'option de continuer la partie
+        if self.modele.partieEnCours:
+            self.btnContinuer = Button(self.frameMenu, text = "Continuer", command = self.parent.jouerCoup)
+            self.btnContinuer.pack(fill = X, pady = btnPaddingY)
+        
+        self.btnNouvellePartie = Button(self.frameMenu, text = "Nouvelle partie", command = self.parent.debutPartie)
+        self.btnNouvellePartie.pack(fill = X, pady = btnPaddingY)
+        
+        self.btnQuitter = Button(self.frameMenu, text = "Quitter", command = self.parent.quitter)
+        self.btnQuitter.pack(fill = X, pady = btnPaddingY)
     
-    def debugging(self):
-        # Sert à afficher les point du sentier (s'il existe) dans la console
-        if self.modele.sentier is not NULL:
-            print("===[Chemin du Sentier]=============================================")
-            for point in self.modele.sentier.chemin:
-                print(point)
-            
-        # Sert à afficher la position du portail (s'il existe) dans la console
-        if self.modele.portail is not NULL:
-            print("===[Position du Portail]===========================================")
-            print("(", self.modele.portail.x, ",",  self.modele.portail.y, ")")
+    def afficheNiveau(self):
+        pass
     
-    # ===================================================================
+    def afficheFinDeJeu(self):
+        pass
 
 class Controleur():
     def __init__(self):
         self.modele = TowerDefense(self)
         self.vue = Vue(self)
         
-        # Debug
-        self.vue.debugging()
+        # Afficher le menu initial
+        self.vue.afficheMenuInit()
+        
+        # Commencer le mainloop de tkinter
+        self.vue.root.mainloop()
+    
+    def debutPartie(self):
+        self.modele.creerPartie()
+    
+    def jouerCoup(self):
+        pass
+    
+    def retourMenu(self):
+        pass
+    
+    def quitter(self):
+        pass
 
 if __name__ == '__main__':
     controleur = Controleur()
