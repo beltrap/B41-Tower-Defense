@@ -4,6 +4,19 @@ import random
 import helper
 from _overlapped import NULL
 
+class Portail():
+    def __init__(self, parent):
+        self.parent = parent
+        self.pointsDeVie = 1000
+        # Retire le dernier point du sentier pour représenter la position du portail
+        position = parent.sentier.chemin.pop()
+        self.x = position[0]
+        self.y = position[1]
+    
+    # Réduit les points de vie du portail s'il est endommagé
+    def endommager(self, dommages):
+        self.pointsDeVie -= dommages
+
 class Sentier():
     def __init__(self, parent):
         self.parent = parent
@@ -32,13 +45,13 @@ class Sentier():
             x = 0
             y = random.randrange(parent.hauteur)
         
-        depart = (x,y)
+        depart = (x, y)
         
         # Génération et acceptation du terrain
         # Acceptation selon le pourcentage de points qui forment le chemin
-        CheminAccepte = False
+        cheminAccepte = False
         
-        while not CheminAccepte:
+        while not cheminAccepte:
             
             # Réinitialise le chemin et on intègre le point de départ comme premier point
             self.chemin.clear()
@@ -97,7 +110,7 @@ class Sentier():
             couvertureMax = parent.largeur * parent.hauteur * self.maxPctCouverture / 100
             
             if len(self.chemin) >= couvertureMin and len(self.chemin) <= couvertureMax and not cheminRejete:
-                CheminAccepte = True
+                cheminAccepte = True
 
 class TowerDefense():
     def __init__(self, parent):
@@ -105,22 +118,40 @@ class TowerDefense():
         self.largeur = 30
         self.hauteur = 20
         self.sentier = Sentier(self)
-        
-        # Sert à afficher les point du sentier dans la console
-        for point in self.sentier.chemin:
-            print(point)
+        self.portail = Portail(self)
 
 class Vue():
     def __init__(self, parent):
         self.parent = parent
+        self.modele = self.parent.modele
+        self.root = Tk()
         self.echelleDeGrosseur = 20
         self.largeur = 800
         self.hauteur = 600
+        
+    # ===[Debugging]=====================================================
+    
+    def debugging(self):
+        # Sert à afficher les point du sentier (s'il existe) dans la console
+        if self.modele.sentier is not NULL:
+            print("===[Chemin du Sentier]=============================================")
+            for point in self.modele.sentier.chemin:
+                print(point)
+            
+        # Sert à afficher la position du portail (s'il existe) dans la console
+        if self.modele.portail is not NULL:
+            print("===[Position du Portail]===========================================")
+            print("(", self.modele.portail.x, ",",  self.modele.portail.y, ")")
+    
+    # ===================================================================
 
 class Controleur():
     def __init__(self):
-        self.vue = Vue(self)
         self.modele = TowerDefense(self)
+        self.vue = Vue(self)
+        
+        # Debug
+        self.vue.debugging()
 
 if __name__ == '__main__':
-    c=Controleur()
+    controleur = Controleur()
