@@ -43,6 +43,7 @@ class Sentier():
             # Réinitialise le chemin et on intègre le point de départ comme premier point
             self.chemin.clear()
             self.chemin.append(depart)
+            dernierPoint = self.chemin[-1]
             
             # Génération du chemin de façon aléatoire
             generation = True
@@ -57,7 +58,6 @@ class Sentier():
                     
                     # La direction est représentée par le haut(0), la droite(1), le bas(2) et la gauche(3)
                     direction = random.randrange(4)
-                    dernierPoint = self.chemin[len(self.chemin) - 1]
                     
                     # Haut
                     if direction == 0:
@@ -79,18 +79,17 @@ class Sentier():
                     # Si le point n'existe pas déjà dans le chemin, l'ajouter à la liste
                     if (x, y) not in self.chemin:
                         self.chemin.append((x, y))
+                        dernierPoint = self.chemin[-1]
                         directionValide = True
                     
                     # Si tout le chemin ne peut plus aller nulle part (pris dans une spirale), on le rejet
-                    if (self.chemin[-1][0] + 1, self.chemin[-1][1]) in self.chemin and (self.chemin[-1][0] - 1, self.chemin[-1][1]) in self.chemin and (self.chemin[-1][0], self.chemin[-1][1] + 1) in self.chemin and (self.chemin[-1][0], self.chemin[-1][1] - 1) in self.chemin:
+                    if (dernierPoint[0] + 1, dernierPoint[1]) in self.chemin and (dernierPoint[0] - 1, dernierPoint[1]) in self.chemin and (dernierPoint[0], dernierPoint[1] + 1) in self.chemin and (dernierPoint[0], dernierPoint[1] - 1) in self.chemin:
                         cheminRejete = True
                 
                 # Vérifie si le chemin va en dehors du terrain
-                finDuSentier = self.chemin[len(self.chemin) - 1]
-                
-                if finDuSentier[0] < 0 or finDuSentier[0] > parent.largeur - 1 or finDuSentier[1] < 0 or finDuSentier[1] > parent.hauteur - 1:
-                    # Si oui, on retire le dernier point et la génération est terminée
-                    self.chemin.remove(finDuSentier)
+                # Si oui, on retire le dernier point et la génération est terminée
+                if dernierPoint[0] < 0 or dernierPoint[0] > parent.largeur - 1 or dernierPoint[1] < 0 or dernierPoint[1] > parent.hauteur - 1:
+                    self.chemin.remove(dernierPoint)
                     generation = False
             
             # Vérification pour savoir si le chemin est trop long ou trop court selon les pourcentages minimales et maximales
@@ -108,8 +107,8 @@ class TowerDefense():
         self.sentier = Sentier(self)
         
         # Sert à afficher les point du sentier dans la console
-        # for point in self.sentier.chemin:
-        #     print(point)
+        for point in self.sentier.chemin:
+            print(point)
 
 class Vue():
     def __init__(self, parent):
