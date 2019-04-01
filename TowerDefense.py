@@ -3,6 +3,7 @@ from tkinter import *
 import random
 import helper
 import debug
+from _overlapped import NULL
 
 class Portail():
     def __init__(self, parent):
@@ -19,8 +20,8 @@ class Sentier():
     def __init__(self, parent):
         self.parent = parent
         self.chemin = []
-        self.minPctCouverture = 20
-        self.maxPctCouverture = 25
+        self.minPctCouverture = 25
+        self.maxPctCouverture = 30
         
         # Détermination du point de départ
         # Lecôté de départ représente le haut(0), la droite(1), le bas(2) et la gauche(3)
@@ -28,20 +29,20 @@ class Sentier():
         
         # Haut
         if coteDepart == 0:
-            x = random.randrange(parent.largeur)
+            x = random.randrange(self.parent.largeur)
             y = 0
         # Droite
         elif coteDepart == 1:
-            x = parent.largeur - 1
-            y = random.randrange(parent.hauteur)
+            x = self.parent.largeur - 1
+            y = random.randrange(self.parent.hauteur)
         # Bas
         elif coteDepart == 2:
-            x = random.randrange(parent.largeur)
-            y = parent.hauteur - 1
+            x = random.randrange(self.parent.largeur)
+            y = self.parent.hauteur - 1
         # Gauche
         else:
             x = 0
-            y = random.randrange(parent.hauteur)
+            y = random.randrange(self.parent.hauteur)
         
         depart = (x, y)
         
@@ -104,8 +105,8 @@ class Sentier():
                     generation = False
             
             # Vérification pour savoir si le chemin est trop long ou trop court selon les pourcentages minimales et maximales
-            couvertureMin = parent.largeur * parent.hauteur * self.minPctCouverture / 100
-            couvertureMax = parent.largeur * parent.hauteur * self.maxPctCouverture / 100
+            couvertureMin = self.parent.largeur * self.parent.hauteur * self.minPctCouverture / 100
+            couvertureMax = self.parent.largeur * self.parent.hauteur * self.maxPctCouverture / 100
             
             if len(self.chemin) >= couvertureMin and len(self.chemin) <= couvertureMax and not cheminRejete:
                 cheminAccepte = True
@@ -113,7 +114,7 @@ class Sentier():
 class TowerDefense():
     def __init__(self, parent):
         self.parent = parent
-        self.largeur = 30
+        self.largeur = 20
         self.hauteur = 20
         self.sentier = None
         self.portail = None
@@ -131,44 +132,170 @@ class Vue():
         self.parent = parent
         self.modele = self.parent.modele
         self.root = Tk()
-        self.echelleDeGrosseur = 20
+        self.echelleDeGrosseur = 29
         self.largeur = 800
         self.hauteur = 600
         self.titreDuJeu = "Tower Defense"
+        self.largeurSideBar = 200
     
     def afficheMenuInit(self):
+        if self.parent.modele.partieEnCours:
+            self.frameJeu.pack_forget()
+        
         # Titre de la fenêtre
         self.root.title(self.titreDuJeu)
+        self.root.configure(bg = "#222222")
         
         # Détermine la résolution de la fenêtre
         geometry = "%dx%d" % (self.largeur, self.hauteur)
         self.root.geometry(geometry)
         
         # Création du frame qui va contenir le menu
-        self.frameMenu = Frame(self.root)
-        self.frameMenu.pack(side = TOP, expand = True, fill = X, padx = 275)
+        self.frameMenu = Frame(self.root,
+                               bg = "#F0F0F0",
+                               highlightthickness = 0)
+        self.frameMenu.pack(side = TOP, expand = True)
         
         # Création du titre
-        self.labTitre = Label(self.frameMenu, text = self.titreDuJeu)
-        self.labTitre.pack(fill = X, pady = 15)
+        self.labTitre = Label(self.frameMenu,
+                              font = ("Agency FB", 40),
+                              bg = "#F0F0F0",
+                              fg = "#222222",
+                              text = self.titreDuJeu)
+        self.labTitre.pack(fill = X,
+                           padx = 40,
+                           pady = 20)
         
         # Création des boutons
-        btnPaddingY = 5
+        self.menuBtn = []
+        menuBtnTxtOuCmd = [("Continuer", self.parent.jouerCoup),
+                           ("Nouvelle partie", self.parent.debutPartie),
+                           ("Quitter", self.parent.quitter)]
         
-        # Si la partie est en cours, afficher l'option de continuer la partie
-        if self.modele.partieEnCours:
-            self.btnContinuer = Button(self.frameMenu, text = "Continuer", command = self.parent.jouerCoup)
-            self.btnContinuer.pack(fill = X, pady = btnPaddingY)
+        for txtOuCmd in menuBtnTxtOuCmd:
+            # Si la partie est en cours, afficher l'option de continuer la partie
+            if txtOuCmd[0] == "Continuer" and not self.modele.partieEnCours:
+                continue
+            
+            btn = Button(self.frameMenu,
+                         font = ("Agency FB", 20),
+                         bg = "#292929",
+                         fg = "#FFFFFF",
+                         activebackground = "#FFFFFF",
+                         activeforeground = "#292929",
+                         text = txtOuCmd[0],
+                         command = txtOuCmd[1])
+            btn.pack(fill = X,
+                     padx = 7,
+                     pady = 7)
+            
+            self.menuBtn.append(btn)
         
-        self.btnNouvellePartie = Button(self.frameMenu, text = "Nouvelle partie", command = self.parent.debutPartie)
-        self.btnNouvellePartie.pack(fill = X, pady = btnPaddingY)
-        
-        self.btnQuitter = Button(self.frameMenu, text = "Quitter", command = self.parent.quitter)
-        self.btnQuitter.pack(fill = X, pady = btnPaddingY)
+        self.labCredit = Label(self.root,
+                              font = ("Arial", 7),
+                              bg = "#222222",
+                              fg = "#CBCBCB",
+                              text = "Développé par: Jessica Khau, Maxime Denis et Paul Beltran\nDans le cadre du cour de B41 Gestion de projet - Technique et méthodologie au CVM")
+        self.labCredit.pack(side = BOTTOM)
     
     def afficheNiveau(self):
-        pass
-    
+        self.frameMenu.pack_forget()
+        self.labCredit.pack_forget()
+        
+        self.frameJeu = Frame(self.root,
+                              bg = "#222222",
+                              highlightthickness = 0)
+        self.frameJeu.pack(side = TOP,
+                           expand = True)
+        
+        self.canvasJeu = Canvas(self.frameJeu,
+                                highlightthickness = 0,
+                                width = self.largeur - 19 - self.largeurSideBar,
+                                height = self.hauteur - 19,
+                                bg = "#006600")
+        self.canvasJeu.pack(side = LEFT,
+                            padx = 10)
+        
+        lineColor = "#222222"
+        
+        for i in range(self.modele.largeur + 1):
+            self.canvasJeu.create_line(i * self.echelleDeGrosseur,
+                                       0,
+                                       i * self.echelleDeGrosseur,
+                                       self.largeur - self.largeurSideBar,
+                                       fill = lineColor)
+
+        for i in range(self.modele.hauteur + 1):
+            self.canvasJeu.create_line(0,
+                                       i * self.echelleDeGrosseur,
+                                       self.hauteur,
+                                       i * self.echelleDeGrosseur,
+                                       fill = lineColor)
+        
+        for point in self.modele.sentier.chemin:
+            self.canvasJeu.create_rectangle(point[0] * self.echelleDeGrosseur + 1,
+                                            point[1] * self.echelleDeGrosseur + 1,
+                                            point[0] * self.echelleDeGrosseur + self.echelleDeGrosseur,
+                                            point[1] * self.echelleDeGrosseur + self.echelleDeGrosseur,
+                                            fill = "#994C00", width = 0)
+        
+        self.canvasJeu.create_rectangle(self.modele.portail.x * self.echelleDeGrosseur + 1,
+                                        self.modele.portail.y * self.echelleDeGrosseur + 1,
+                                        self.modele.portail.x * self.echelleDeGrosseur + self.echelleDeGrosseur,
+                                        self.modele.portail.y * self.echelleDeGrosseur + self.echelleDeGrosseur,
+                                        fill = "#6600CC", width = 0)
+        
+        self.frameSideBar = Frame(self.frameJeu,
+                                  bg = "#222222",
+                                  highlightthickness = 0,
+                                  width = self.largeurSideBar,
+                                  height = self.hauteur - 10)
+        self.frameSideBar.pack(side = LEFT)
+        
+        self.frameBtnMenu = Frame(self.frameSideBar,
+                                  bg = "#F0F0F0",
+                                  highlightthickness = 0,
+                                  width = 200)
+        self.frameBtnMenu.pack(side = TOP,
+                               fill = X,
+                               padx = 10,
+                               pady = 10)
+        
+        self.btnMenuPrincipal = Button(self.frameBtnMenu,
+                                       font = ("Agency FB", 17),
+                                       bg = "#292929",
+                                       fg = "#FFFFFF",
+                                       activebackground = "#FFFFFF",
+                                       activeforeground = "#292929",
+                                       text = "Menu principal",
+                                       command = None)
+        self.btnMenuPrincipal.pack(side = TOP,
+                                   fill = X,
+                                   padx = 7,
+                                   pady = 7)
+        
+        self.labScore = Label(self.frameBtnMenu,
+                              anchor = W,
+                              font = ("Agency FB", 17),
+                              bg = "#F0F0F0",
+                              fg = "#222222",
+                              text = "Score: 0")
+        self.labScore.pack(side = TOP,
+                           fill = X,
+                           padx = 5,
+                           pady = 5)
+        
+        self.labRessources = Label(self.frameBtnMenu,
+                                   anchor = W,
+                                   font = ("Agency FB", 17),
+                                   bg = "#F0F0F0",
+                                   fg = "#222222",
+                                   text = "Ressources: 0")
+        self.labRessources.pack(side = TOP,
+                                fill = X,
+                                padx = 5,
+                                pady = 5)
+        
     def afficheFinDeJeu(self):
         pass
 
@@ -185,9 +312,10 @@ class Controleur():
     
     def debutPartie(self):
         self.modele.creerPartie()
+        self.jouerCoup()
     
     def jouerCoup(self):
-        pass
+        self.vue.afficheNiveau()
     
     def retourMenu(self):
         pass
